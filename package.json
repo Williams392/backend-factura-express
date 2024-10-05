@@ -11,6 +11,8 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@peculiar/x509": "^1.12.3",
+    "@xmldom/xmldom": "^0.9.3",
     "adm-zip": "^0.5.16",
     "axios": "^1.7.7",
     "backend-factura": "file:",

@@ -1,7 +1,7 @@
 <Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2" xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2" xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2" xmlns:ext="urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2" xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
   <ext:UBLExtensions>
     <ext:UBLExtension>
-      <ext:ExtensionContent></ext:ExtensionContent>
+      <ext:ExtensionContent><ds:Signature><ds:SignatureValue>FIiFBSfqrmE2+ho8EY23NEu9DuD+PR0BcACelq3l1HdOIOPNQ9jI+RYb/ul47SVSMvgAOxBaO33oP62gFDR1R55AQsSTqlPjZ1Sm3UkNDDSv81mHQkYGwLA5oQ+6Vnow/c3ztmUyMM5G/oZ02Ikb2dtEeLuf3DEEexQ+mSV4GHZN5SuYQg1o/CDL6W613YbFF8z89a2gpK1IGv7kKOod23h9wnnLCvhFuG71iql5erngr4QLwzBlBNvoSzE4Su2+Ke6kIo5TA4BI6jq6vNouJXIy8zdwnfamnCFkFGmzxNPAzfRp3A1pNuoWWcZH32R1BBTU+3jRkvNJXgrbhHU/tA==</ds:SignatureValue></ds:Signature></ext:ExtensionContent>
     </ext:UBLExtension>
   </ext:UBLExtensions>
   <cbc:UBLVersionID>2.1</cbc:UBLVersionID>
@@ -14,7 +14,7 @@
   <cbc:InvoiceTypeCode>01</cbc:InvoiceTypeCode>
   <cbc:DocumentCurrencyCode>PEN</cbc:DocumentCurrencyCode>
   <cac:AccountingSupplierParty>
-    <cbc:CustomerAssignedAccountID>20000000001</cbc:CustomerAssignedAccountID>
+    <cbc:CustomerAssignedAccountID>20353745421</cbc:CustomerAssignedAccountID>
     <cbc:AdditionalAccountID>6</cbc:AdditionalAccountID>
     <cac:Party>
       <cac:PartyLegalEntity>
@@ -97,7 +97,7 @@
         <cbc:AdditionalInformation>
           <cbc:AdditionalMonetaryTotal>
             <cbc:ID>1000</cbc:ID>
-            <cbc:PayableAmount currencyID="PEN"></cbc:PayableAmount>
+            <cbc:PayableAmount currencyID="PEN"/>
           </cbc:AdditionalMonetaryTotal>
         </cbc:AdditionalInformation>
       </cbc:ExtensionContent>

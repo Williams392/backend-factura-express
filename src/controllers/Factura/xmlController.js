@@ -9,6 +9,7 @@ const fs = require('fs');
 const { XMLBuilder } = require('fast-xml-parser');
 const path = require('path');
 
+// Paso 01:
 exports.generarFacturaXML = async (req, res) => {
     try {
         const venta = await Venta.findByPk(req.params.id, {
