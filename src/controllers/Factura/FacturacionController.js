@@ -12,10 +12,21 @@ exports.firmarXML = async (req, res) => {
     try {
         const { rutaXML } = req.body; // Ruta del XML generado
         const emisor = await Emisor.findOne();
+
+        if (!emisor.certificado || !emisor.clave_certificado) {
+            return res.status(400).json({ error: 'El emisor no tiene un certificado asignado' });
+        }
+
         const certificadoPath = path.join(__dirname, '../../documents/certificados/', emisor.certificado);
         const pfx = fs.readFileSync(certificadoPath);
-        const p12Asn1 = forge.asn1.fromDer(pfx.toString('binary'));
-        const p12 = forge.pkcs12.pkcs12FromAsn1(p12Asn1, emisor.clave_certificado);
+
+        let p12;
+        try {
+            const p12Asn1 = forge.asn1.fromDer(pfx.toString('binary'));
+            p12 = forge.pkcs12.pkcs12FromAsn1(p12Asn1, emisor.clave_certificado);
+        } catch (error) {
+            return res.status(400).json({ error: 'Error al procesar el certificado. ¿Contraseña incorrecta?' });
+        }
 
         const keyObj = p12.getBags({ bagType: forge.pki.oids.pkcs8ShroudedKeyBag })[forge.pki.oids.pkcs8ShroudedKeyBag];
         const privateKey = keyObj.key;
@@ -52,7 +63,7 @@ exports.firmarXML = async (req, res) => {
 
         res.json({ message: 'XML firmado correctamente', ruta: rutaXML });
     } catch (error) {
-        console.error(error);
+        console.error('Error al firmar el XML:', error);
         res.status(500).json({ error: 'Error al firmar el XML' });
     }
 };

@@ -8,7 +8,7 @@ exports.createEmisor = async (req, res) => {
         const emisor = await Emisor.create({ ...req.body, direccion_id: direccion.id });
         res.status(201).json(emisor);
     } catch (error) {
-        console.error('Error al crear el emisor:', error); // Agregar más detalles al mensaje de error
+        console.error('Error al crear el emisor:', error);
         res.status(500).json({ error: 'Error al crear el emisor', details: error.message });
     }
 };
