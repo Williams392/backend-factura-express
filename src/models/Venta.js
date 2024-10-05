@@ -1,4 +1,3 @@
-// src/models/Venta.js
 const { DataTypes } = require('sequelize');
 const sequelize = require('../database/db');
 const Cliente = require('./Cliente');
@@ -25,6 +24,14 @@ const Venta = sequelize.define('Venta', {
         allowNull: false
     },
     fecha_emision: {
+        type: DataTypes.DATE,
+        allowNull: false
+    },
+    hora_emision: {
+        type: DataTypes.TIME,
+        allowNull: false
+    },
+    fecha_vencimiento: {
         type: DataTypes.DATE,
         allowNull: false
     },

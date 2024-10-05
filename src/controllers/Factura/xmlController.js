@@ -8,6 +8,7 @@ const Direccion = require('../../models/Direccion');
 const fs = require('fs');
 const { XMLBuilder } = require('fast-xml-parser');
 const path = require('path');
+const moment = require('moment');
 
 exports.generarFacturaXML = async (req, res) => {
     try {
@@ -39,19 +40,31 @@ exports.generarFacturaXML = async (req, res) => {
             format: true
         };
 
+        // Formatear las fechas y horas
+        const issueDate = moment(venta.fecha_emision).format('YYYY-MM-DD');
+        const issueTime = moment(venta.hora_emision, 'HH:mm:ss').format('HH:mm:ss');
+        const dueDate = moment(venta.fecha_vencimiento).format('YYYY-MM-DD');
+
         // Crear el objeto XML con los datos del comprobante
         const xmlData = {
             'Invoice': {
-                '@_xmlns': 'urn:oasis:names:specification:ubl:schema:xsd:Invoice-2',
+                '@_xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
+                '@_xmlns:xsd': 'http://www.w3.org/2001/XMLSchema',
                 '@_xmlns:cac': 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2',
                 '@_xmlns:cbc': 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2',
-                '@_xmlns:ext': 'urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2',
+                '@_xmlns:ccts': 'urn:un:unece:uncefact:documentation:2',
                 '@_xmlns:ds': 'http://www.w3.org/2000/09/xmldsig#',
+                '@_xmlns:ext': 'urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2',
+                '@_xmlns:qdt': 'urn:oasis:names:specification:ubl:schema:xsd:QualifiedDatatypes-2',
+                '@_xmlns:udt': 'urn:un:unece:uncefact:data:specification:UnqualifiedDataTypesSchemaModule:2',
+                '@_xmlns': 'urn:oasis:names:specification:ubl:schema:xsd:Invoice-2',
+
                 'ext:UBLExtensions': {
                     'ext:UBLExtension': {
                         'ext:ExtensionContent': '' // Aquí se incluirá la firma digital
                     }
                 },
+
                 'cbc:UBLVersionID': '2.1',
                 'cbc:CustomizationID': {
                     '@_schemeAgencyName': 'PE:SUNAT',
@@ -64,9 +77,9 @@ exports.generarFacturaXML = async (req, res) => {
                     '#text': '0101' // Código de tipo de Operación | catálogo 51 es venta interna
                 },
                 'cbc:ID': `${venta.serie}-${venta.correlativo}`,
-                'cbc:IssueDate': venta.fecha_emision,
-                'cbc:IssueTime': '00:00:00',
-                'cbc:DueDate': venta.fecha_emision,
+                'cbc:IssueDate': issueDate,
+                'cbc:IssueTime': issueTime,
+                'cbc:DueDate': dueDate,
                 'cbc:InvoiceTypeCode': '01', // Tipo de documento: Factura
                 'cbc:DocumentCurrencyCode': 'PEN', // Moneda
                 'cac:AccountingSupplierParty': {
