@@ -80,31 +80,113 @@ exports.generarFacturaXML = async (req, res) => {
                 'cbc:IssueDate': issueDate,
                 'cbc:IssueTime': issueTime,
                 'cbc:DueDate': dueDate,
-                'cbc:InvoiceTypeCode': '01', // Tipo de documento: Factura
-                'cbc:DocumentCurrencyCode': 'PEN', // Moneda
+                
+                //'cbc:InvoiceTypeCode': '01', // Tipo de documento: Factura
+                'cbc:InvoiceTypeCode': {
+                    '@_listAgencyName': 'PE:SUNAT',
+                    '@_listName': 'Tipo de Documento',
+                    '@_listURI': 'urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo01',
+                    '@_listID': '0101',
+                    '@_name': 'Tipo de Operacion',
+                    '#text': '01'  // Código de tipo de documento (Factura)
+                },
+
+                //'cbc:DocumentCurrencyCode': 'PEN', // Moneda
+                'cbc:DocumentCurrencyCode': {
+                    '@_listID': 'ISO 4217 Alpha',
+                    '@_listName': 'Currency',
+                    '@_listAgencyName': 'United Nations Economic Commission for Europe',
+                    '#text': 'PEN'  // Código de moneda
+                },
+                'cbc:LineCountNumeric': venta.DetalleVentas.length,  // Cantidad de líneas de detalle
+
+                // Nuevo:
+                'cac:Signature': {
+                    'cbc:ID': `${venta.serie}-${venta.correlativo}`,  // ID de la firma
+                    'cac:SignatoryParty': {
+                        'cac:PartyIdentification': {
+                            'cbc:ID': venta.Emisor.ruc  // RUC del emisor
+                        },
+                        'cac:PartyName': {
+                            'cbc:Name': `<![CDATA[${venta.Emisor.nombre_comercial}]]>`  // Nombre comercial del emisor
+                        }
+                    },
+                    'cac:DigitalSignatureAttachment': {
+                        'cac:ExternalReference': {
+                            'cbc:URI': '#SignatureSP'  // URI de la firma
+                        }
+                    }
+                },
+
+
                 'cac:AccountingSupplierParty': {
-                    'cbc:CustomerAssignedAccountID': venta.Emisor.ruc,
-                    'cbc:AdditionalAccountID': '6', // Tipo de documento del emisor: RUC
                     'cac:Party': {
+                        'cac:PartyIdentification': {
+                            'cbc:ID': {
+                                '@_schemeID': '6',
+                                '@_schemeName': 'Documento de Identidad',
+                                '@_schemeAgencyName': 'PE:SUNAT',
+                                '@_schemeURI': 'urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo06',
+                                '#text': venta.Emisor.ruc
+                            }
+                        },
+                        'cac:PartyName': {
+                            'cbc:Name': venta.Emisor.razon_social,
+                        },
+                        'cac:PartyTaxScheme': {
+                            'cbc:RegistrationName': venta.Emisor.razon_social,
+                            'cbc:CompanyID': {
+                                '@_schemeID': '6',
+                                '@_schemeName': 'SUNAT:Identificador de Documento de Identidad',
+                                '@_schemeAgencyName': 'PE:SUNAT',
+                                '@_schemeURI': 'urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo06',
+                                '#text': venta.Emisor.ruc
+                            },
+                            'cac:TaxScheme': {
+                                'cbc:ID': {
+                                    '@_schemeID': '6',
+                                    '@_schemeName': 'SUNAT:Identificador de Documento de Identidad',
+                                    '@_schemeAgencyName': 'PE:SUNAT',
+                                    '@_schemeURI': 'urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo06',
+                                    '#text': venta.Emisor.ruc
+                                }
+                            }
+                        },
                         'cac:PartyLegalEntity': {
                             'cbc:RegistrationName': venta.Emisor.razon_social,
                             'cac:RegistrationAddress': {
-                                'cbc:ID': venta.Emisor.Direccion.ubigueo,
-                                'cbc:AddressTypeCode': '0000',
-                                'cbc:CitySubdivisionName': venta.Emisor.Direccion.urbanizacion,
+                                'cbc:ID': {
+                                    '@_schemeName': 'Ubigeos',
+                                    '@_schemeAgencyName': 'PE:INEI',
+                                    '#text': venta.Emisor.Direccion.ubigueo
+                                },
+                                'cbc:AddressTypeCode': {
+                                    '@_listAgencyName': 'PE:SUNAT',
+                                    '@_listName': 'Establecimientos anexos',
+                                    '#text': '0000'
+                                },
                                 'cbc:CityName': venta.Emisor.Direccion.provincia,
                                 'cbc:CountrySubentity': venta.Emisor.Direccion.departamento,
                                 'cbc:District': venta.Emisor.Direccion.distrito,
                                 'cac:AddressLine': {
-                                    'cbc:Line': venta.Emisor.Direccion.direccion
+                                    'cbc:Line': venta.Emisor.Direccion.direccion,
                                 },
                                 'cac:Country': {
-                                    'cbc:IdentificationCode': 'PE'
+                                    'cbc:IdentificationCode': {
+                                        '@_listID': 'ISO 3166-1',
+                                        '@_listAgencyName': 'United Nations Economic Commission for Europe',
+                                        '@_listName': 'Country',
+                                        '#text': 'PE'
+                                    }
                                 }
                             }
+                        },
+                        'cac:Contact': {
+                            'cbc:Name': `CDATA[Nombre de Contacto` // Asegúrate de que este campo no esté vacío
                         }
                     }
                 },
+
                 'cac:AccountingCustomerParty': {
                     'cbc:CustomerAssignedAccountID': venta.Cliente.num_doc,
                     'cbc:AdditionalAccountID': venta.Cliente.tipo_doc, // Tipo de documento del cliente
