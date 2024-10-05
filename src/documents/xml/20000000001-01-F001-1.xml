@@ -1,7 +1,7 @@
 <Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2" xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2" xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2" xmlns:ext="urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2" xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
   <ext:UBLExtensions>
     <ext:UBLExtension>
-      <ext:ExtensionContent></ext:ExtensionContent>
+      <ext:ExtensionContent><ds:Signature><ds:SignatureValue>hVrnt1dBX2G7wvH6OBNBa4o4w8nOYEmtO58H7kXpt8UnaJYONH35LBI474tIZ76r7PkmLvvcamO6zNLs9HDF9rK5pe6Ub4zJlwQ/JfG/XupeAjW3lcIeK7RuRuUb985tEzn6xkSsdwgb0AjrzCPSVyo4y1BSswIPjDzWa98YuMmin04q+RhxTZ68WHpesrYMPFZYaNxoWhA0Xi22wfV1YPApK5QQhfo4pCr9f/gR6I2Qp7wXcJCzx+7LcHWYrtlGG8zS1TnWvBLKT5z8d6Z9GnlypDeJy5k7uY1okcMXhVWxEjWu5xfKgOMKfoojVbb4G59SGZkCf3FFzlO7EkDxOg==</ds:SignatureValue></ds:Signature></ext:ExtensionContent>
     </ext:UBLExtension>
   </ext:UBLExtensions>
   <cbc:UBLVersionID>2.1</cbc:UBLVersionID>
@@ -97,7 +97,7 @@
         <cbc:AdditionalInformation>
           <cbc:AdditionalMonetaryTotal>
             <cbc:ID>1000</cbc:ID>
-            <cbc:PayableAmount currencyID="PEN"></cbc:PayableAmount>
+            <cbc:PayableAmount currencyID="PEN"/>
           </cbc:AdditionalMonetaryTotal>
         </cbc:AdditionalInformation>
       </cbc:ExtensionContent>
