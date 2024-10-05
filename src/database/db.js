@@ -2,7 +2,7 @@
 const { Sequelize } = require('sequelize'); // Asegúrate de importar Sequelize correctamente
 require('dotenv').config();
 
-const sequelize = new Sequelize('bd_factura_v2', 'root', '', {
+const sequelize = new Sequelize('bd_factura_v3', 'root', '', {
   host: 'localhost',
   dialect: 'mysql',
 });

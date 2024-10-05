@@ -1,28 +1,37 @@
-// src/controllers/xmlController.js
-const Emisor = require('../models/Emisor');
-const Cliente = require('../models/Cliente');
-const Venta = require('../models/Venta');
-const DetalleVenta = require('../models/DetalleVenta');
-const Leyenda = require('../models/Leyenda');
-const Direccion = require('../models/Direccion');
+// src/controllers/Factura/xmlController.js
+const Emisor = require('../../models/Emisor');
+const Cliente = require('../../models/Cliente');
+const Venta = require('../../models/Venta');
+const DetalleVenta = require('../../models/DetalleVenta');
+const Leyenda = require('../../models/Leyenda');
+const Direccion = require('../../models/Direccion');
 const fs = require('fs');
-const { j2xParser } = require('fast-xml-parser');
+const { XMLBuilder } = require('fast-xml-parser');
 const path = require('path');
 
-// Paso 01:
 exports.generarFacturaXML = async (req, res) => {
     try {
         const venta = await Venta.findByPk(req.params.id, {
             include: [
                 { model: Emisor, include: [Direccion] },
                 Cliente,
-                DetalleVenta,
-                Leyenda
+                { model: DetalleVenta, as: 'DetalleVentas' },
+                { model: Leyenda, as: 'Leyendas' }
             ]
         });
 
+        if (!venta) {
+            return res.status(404).json({ error: 'Venta no encontrada' });
+        }
+
         const nombreXML = `${venta.emisor_ruc}-${venta.tipo}-${venta.serie}-${venta.correlativo}`;
         const rutaXML = path.join(__dirname, '../../documents/xml/', `${nombreXML}.xml`);
+
+        // Crear el directorio si no existe
+        const dir = path.dirname(rutaXML);
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+        }
 
         // Configuración del fast-xml-parser
         const options = {
@@ -117,7 +126,7 @@ exports.generarFacturaXML = async (req, res) => {
                         '#text': venta.total
                     }
                 },
-                'cac:InvoiceLine': venta.DetalleVentas.map(item => ({
+                'cac:InvoiceLine': (venta.DetalleVentas || []).map(item => ({
                     'cbc:ID': item.id,
                     'cbc:InvoicedQuantity': {
                         '@_unitCode': item.unidad,
@@ -168,7 +177,7 @@ exports.generarFacturaXML = async (req, res) => {
                 'cac:UBLExtensions': {
                     'cac:UBLExtension': {
                         'cbc:ExtensionContent': {
-                            'cbc:AdditionalInformation': venta.Leyendas.map(leyenda => ({
+                            'cbc:AdditionalInformation': (venta.Leyendas || []).map(leyenda => ({
                                 'cbc:AdditionalMonetaryTotal': {
                                     'cbc:ID': leyenda.codigo,
                                     'cbc:PayableAmount': {
@@ -183,15 +192,15 @@ exports.generarFacturaXML = async (req, res) => {
             }
         };
 
-        const parser = new j2xParser(options);
-        const xml = parser.parse(xmlData);
+        const builder = new XMLBuilder(options);
+        const xml = builder.build(xmlData);
 
         // Guardar XML
         fs.writeFileSync(rutaXML, xml);
 
         res.json({ message: 'XML generado correctamente', ruta: rutaXML });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Error al generar XML' });
+        console.error('Error al generar el XML:', error);
+        res.status(500).json({ error: 'Error al generar XML', details: error.message });
     }
 };

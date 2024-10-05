@@ -1,8 +1,8 @@
 // src/models/Leyenda.js
 const { DataTypes } = require('sequelize');
 const sequelize = require('../database/db');
-const Venta = require('./Venta');
 
+// Definir el modelo Leyenda
 const Leyenda = sequelize.define('Leyenda', {
     id: {
         type: DataTypes.INTEGER,
@@ -12,7 +12,7 @@ const Leyenda = sequelize.define('Leyenda', {
     venta_id: {
         type: DataTypes.INTEGER,
         references: {
-            model: Venta,
+            model: 'venta',  // Hace referencia al nombre de la tabla "venta"
             key: 'id'
         }
     },
@@ -20,7 +20,7 @@ const Leyenda = sequelize.define('Leyenda', {
         type: DataTypes.STRING,
         allowNull: false
     },
-    valor: {
+    descripcion: {
         type: DataTypes.STRING,
         allowNull: false
     }
@@ -28,7 +28,5 @@ const Leyenda = sequelize.define('Leyenda', {
     tableName: 'leyenda',
     timestamps: false
 });
-
-Leyenda.belongsTo(Venta, { foreignKey: 'venta_id' });
 
 module.exports = Leyenda;

@@ -1,16 +1,4 @@
 // src/models/Emisor.js
-// const { DataTypes } = require('sequelize');
-// const sequelize = require('../database/db');
-
-// const Emisor = sequelize.define('Emisor', {
-//     ruc: { type: DataTypes.STRING, allowNull: false },
-//     nombre: { type: DataTypes.STRING, allowNull: false },
-//     certificado: { type: DataTypes.STRING, allowNull: false },
-//     clave_certificado: { type: DataTypes.STRING, allowNull: false }
-// });
-
-
-// src/models/Emisor.js
 const { DataTypes } = require('sequelize');
 const sequelize = require('../database/db');
 const Direccion = require('./Direccion');
@@ -36,13 +24,21 @@ const Emisor = sequelize.define('Emisor', {
             key: 'id'
         }
     },
+    usuario_emisor: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+    clave_emisor: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
     certificado: {
         type: DataTypes.STRING,
-        allowNull: false
+        allowNull: true
     },
     clave_certificado: {
         type: DataTypes.STRING,
-        allowNull: false
+        allowNull: true
     }
 }, {
     tableName: 'emisor',

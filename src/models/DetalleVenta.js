@@ -1,8 +1,8 @@
 // src/models/DetalleVenta.js
 const { DataTypes } = require('sequelize');
 const sequelize = require('../database/db');
-const Venta = require('./Venta');
 
+// Definición del modelo DetalleVenta
 const DetalleVenta = sequelize.define('DetalleVenta', {
     id: {
         type: DataTypes.INTEGER,
@@ -12,7 +12,7 @@ const DetalleVenta = sequelize.define('DetalleVenta', {
     venta_id: {
         type: DataTypes.INTEGER,
         references: {
-            model: Venta,
+            model: 'venta',  // Hace referencia al nombre de la tabla "venta"
             key: 'id'
         }
     },
@@ -52,7 +52,5 @@ const DetalleVenta = sequelize.define('DetalleVenta', {
     tableName: 'detalle_venta',
     timestamps: false
 });
-
-DetalleVenta.belongsTo(Venta, { foreignKey: 'venta_id' });
 
 module.exports = DetalleVenta;

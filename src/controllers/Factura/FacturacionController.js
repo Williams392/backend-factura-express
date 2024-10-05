@@ -5,13 +5,14 @@ const zip = require('adm-zip');
 const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
+const Emisor = require('../../models/Emisor');
 
 // PASO 02: FIRMAR EL XML
 exports.firmarXML = async (req, res) => {
     try {
         const { rutaXML } = req.body; // Ruta del XML generado
         const emisor = await Emisor.findOne();
-        const certificadoPath = path.join(__dirname, '../../documents/certificados/CERTIFICADO-DEMO-20353745421.pfx');
+        const certificadoPath = path.join(__dirname, '../../documents/certificados/', emisor.certificado);
         const pfx = fs.readFileSync(certificadoPath);
         const p12Asn1 = forge.asn1.fromDer(pfx.toString('binary'));
         const p12 = forge.pkcs12.pkcs12FromAsn1(p12Asn1, emisor.clave_certificado);
@@ -64,7 +65,7 @@ exports.comprimirXML = async (req, res) => {
     const nombreZIP = rutaXML.replace('.xml', '.zip');
     const zipFile = new zip();
     zipFile.addLocalFile(rutaXML);
-    zipFile.writeZip(`./documents/zip/${nombreZIP}`);
+    zipFile.writeZip(`../../documents/zip/${nombreZIP}`);
     res.json({ message: 'Archivo comprimido correctamente', zip: nombreZIP });
 };
 
@@ -72,33 +73,48 @@ exports.comprimirXML = async (req, res) => {
 // PASO 04 con 05: PREPARAMOS LA CARTA DE ENVIO para SUNAT:
 // Usa axios para enviar el comprobante a la API de SUNAT:
 exports.enviarASunat = async (req, res) => {
-    const { nombreZIP } = req.body;
-    const zipContent = fs.readFileSync(`./documents/zip/${nombreZIP}`).toString('base64');
+    try {
+        const { nombreZIP } = req.body;
+        const zipContent = fs.readFileSync(`../../documents/zip/${nombreZIP}`).toString('base64');
 
-    const xmlEnvio = `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
-        <soapenv:Body>
-            <ser:sendBill>
-                <fileName>${nombreZIP}</fileName>
-                <contentFile>${zipContent}</contentFile>
-            </ser:sendBill>
-        </soapenv:Body>
-    </soapenv:Envelope>`;
+        const emisor = await Emisor.findOne();
 
-    const response = await axios.post('https://e-beta.sunat.gob.pe/ol-ti-itcpfegem-beta/billService', xmlEnvio, {
-        headers: {
-            'Content-Type': 'text/xml'
-        }
-    });
+        const xmlEnvio = `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ser="http://service.sunat.gob.pe" xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">
+            <soapenv:Header>
+                <wsse:Security>
+                    <wsse:UsernameToken>
+                        <wsse:Username>${emisor.ruc}${emisor.usuario_emisor}</wsse:Username>
+                        <wsse:Password>${emisor.clave_emisor}</wsse:Password>
+                    </wsse:UsernameToken>
+                </wsse:Security>
+            </soapenv:Header>
+            <soapenv:Body>
+                <ser:sendBill>
+                    <fileName>${nombreZIP}</fileName>
+                    <contentFile>${zipContent}</contentFile>
+                </ser:sendBill>
+            </soapenv:Body>
+        </soapenv:Envelope>`;
 
-    // Manejar la respuesta
-    res.json({ response: response.data });
+        const response = await axios.post('https://e-beta.sunat.gob.pe/ol-ti-itcpfegem-beta/billService', xmlEnvio, {
+            headers: {
+                'Content-Type': 'text/xml'
+            }
+        });
+
+        // Manejar la respuesta
+        res.json({ response: response.data });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error al enviar a SUNAT' });
+    }
 };
 
 
 // PASO 06: LEER LA RESPUESTA DE SUNAT.
 exports.leerRespuestaSunat = async (req, res) => {
     const { nombreZIP } = req.body;
-    const rutaCDR = `./documents/cdr/R-${nombreZIP}`;
+    const rutaCDR = path.join(__dirname, '../../documents/cdr/', `R-${nombreZIP}`);
     const response = req.body.response; // Asumiendo que la respuesta de SUNAT está en el cuerpo de la solicitud
 
     const httpcode = response.status;
@@ -113,7 +129,7 @@ exports.leerRespuestaSunat = async (req, res) => {
 
             const zip = new zip();
             if (zip.open(rutaCDR) === true) {
-                zip.extractAllTo(`./documents/cdr/R-${nombreZIP.replace('.zip', '')}`, true);
+                zip.extractAllTo(path.join(__dirname, '../../documents/cdr/', `R-${nombreZIP.replace('.zip', '')}`), true);
                 zip.close();
             }
 

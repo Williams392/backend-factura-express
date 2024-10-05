@@ -2,8 +2,8 @@
 const express = require('express');
 const router = express.Router();
 
-const FacturacionController = require('../controllers/FacturacionController');
-const xmlController = require('../controllers/xmlController');
+const FacturacionController = require('../../controllers/Factura/FacturacionController');
+const xmlController = require('../../controllers/Factura/xmlController');
 
 router.post('/generarFacturaXML/:id', xmlController.generarFacturaXML);
 router.post('/firmarXML', FacturacionController.firmarXML);

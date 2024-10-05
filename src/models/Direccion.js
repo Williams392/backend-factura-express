@@ -3,6 +3,11 @@ const { DataTypes } = require('sequelize');
 const sequelize = require('../database/db');
 
 const Direccion = sequelize.define('Direccion', {
+    id: {
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+        primaryKey: true
+    },
     ubigueo: {
         type: DataTypes.STRING,
         allowNull: false

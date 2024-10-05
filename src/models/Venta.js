@@ -3,6 +3,8 @@ const { DataTypes } = require('sequelize');
 const sequelize = require('../database/db');
 const Cliente = require('./Cliente');
 const Emisor = require('./Emisor');
+const DetalleVenta = require('./DetalleVenta');
+const Leyenda = require('./Leyenda');
 
 const Venta = sequelize.define('Venta', {
     id: {
@@ -55,5 +57,7 @@ const Venta = sequelize.define('Venta', {
 
 Venta.belongsTo(Cliente, { foreignKey: 'cliente_num_doc' });
 Venta.belongsTo(Emisor, { foreignKey: 'emisor_ruc' });
+Venta.hasMany(DetalleVenta, { foreignKey: 'venta_id', as: 'DetalleVentas' });
+Venta.hasMany(Leyenda, { foreignKey: 'venta_id', as: 'Leyendas' });
 
 module.exports = Venta;
