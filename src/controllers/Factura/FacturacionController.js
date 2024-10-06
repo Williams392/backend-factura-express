@@ -50,68 +50,48 @@ exports.firmarXML = async (req, res) => {
         const xmlContent = fs.readFileSync(path.resolve(rutaXML), 'utf8');
         const doc = new DOMParser().parseFromString(xmlContent, 'application/xml'); 
 
-        const md = forge.md.sha256.create();
-        md.update(xmlContent, 'utf8');
-
-        const signature = privateKey.sign(md);
-        const signatureBase64 = forge.util.encode64(signature);
-
-        // Calcular el DigestValue aquí
-        const digestValue = forge.util.encode64(forge.md.sha1.create().update(xmlContent).digest().getBytes());
+        // Canonización y cálculo del DigestValue
+        const referenceContent = new XMLSerializer().serializeToString(doc.documentElement);  // el contenido referenciado
+        const canonicalContent = forge.util.encodeUtf8(referenceContent);  // canoniza el contenido referenciado
+        const digest = forge.md.sha256.create().update(canonicalContent).digest();  // usa SHA-256
+        const digestValue = forge.util.encode64(digest.getBytes());
 
         // Crear la estructura de firma
         const signatureNode = doc.createElementNS('http://www.w3.org/2000/09/xmldsig#', 'ds:Signature');
-        signatureNode.setAttribute('Id', 'signatureKG'); // Agrega el atributo Id
+        signatureNode.setAttribute('Id', 'signatureKG');
 
         // Crear ds:SignedInfo
         const signedInfoNode = doc.createElementNS('http://www.w3.org/2000/09/xmldsig#', 'ds:SignedInfo');
         signedInfoNode.appendChild(doc.createElementNS('http://www.w3.org/2000/09/xmldsig#', 'ds:CanonicalizationMethod'));
-        signedInfoNode.lastChild.setAttribute('Algorithm', 'http://www.w3.org/TR/2001/REC-xml-c14n-20010315#WithComments');
+        signedInfoNode.lastChild.setAttribute('Algorithm', 'http://www.w3.org/TR/2001/REC-xml-c14n-20010315');  // Sin comentarios
         signedInfoNode.appendChild(doc.createElementNS('http://www.w3.org/2000/09/xmldsig#', 'ds:SignatureMethod'));
-        signedInfoNode.lastChild.setAttribute('Algorithm', 'http://www.w3.org/2000/09/xmldsig#dsa-sha1');
-        
+        signedInfoNode.lastChild.setAttribute('Algorithm', 'http://www.w3.org/2000/09/xmldsig#rsa-sha256');  // Cambia a RSA-SHA256
+
+        // Referencia
         const referenceNode = doc.createElementNS('http://www.w3.org/2000/09/xmldsig#', 'ds:Reference');
-        referenceNode.setAttribute('URI', ''); // Completar según tu lógica
+        referenceNode.setAttribute('URI', '');  // Completa según tu lógica
         const transformsNode = doc.createElementNS('http://www.w3.org/2000/09/xmldsig#', 'ds:Transforms');
         transformsNode.appendChild(doc.createElementNS('http://www.w3.org/2000/09/xmldsig#', 'ds:Transform'));
         transformsNode.lastChild.setAttribute('Algorithm', 'http://www.w3.org/2000/09/xmldsig#enveloped-signature');
         referenceNode.appendChild(transformsNode);
         referenceNode.appendChild(doc.createElementNS('http://www.w3.org/2000/09/xmldsig#', 'ds:DigestMethod'));
-        referenceNode.lastChild.setAttribute('Algorithm', 'http://www.w3.org/2000/09/xmldsig#sha1');
+        referenceNode.lastChild.setAttribute('Algorithm', 'http://www.w3.org/2000/09/xmldsig#sha256');  // Cambia a SHA-256
         referenceNode.appendChild(doc.createElementNS('http://www.w3.org/2000/09/xmldsig#', 'ds:DigestValue'));
         referenceNode.lastChild.appendChild(doc.createTextNode(digestValue));
         signedInfoNode.appendChild(referenceNode);
 
         signatureNode.appendChild(signedInfoNode);
 
-        // Crear ds:SignatureValue
-        const signatureValueNode = doc.createElementNS('http://www.w3.org/2000/09/xmldsig#', 'ds:SignatureValue');
-        signatureValueNode.appendChild(doc.createTextNode(signatureBase64));
-        signatureNode.appendChild(signatureValueNode);
-
-        // Crear ds:KeyInfo
-        const keyInfoNode = doc.createElementNS('http://www.w3.org/2000/09/xmldsig#', 'ds:KeyInfo');
-        const x509DataNode = doc.createElementNS('http://www.w3.org/2000/09/xmldsig#', 'ds:X509Data');
-        const x509CertificateNode = doc.createElementNS('http://www.w3.org/2000/09/xmldsig#', 'ds:X509Certificate');
-        x509CertificateNode.appendChild(doc.createTextNode(forge.util.encode64(emisor.certificado))); // Asegúrate de que este valor sea correcto
-        x509DataNode.appendChild(x509CertificateNode);
-        keyInfoNode.appendChild(x509DataNode);
-        signatureNode.appendChild(keyInfoNode);
-
-        // Insertar la firma en el XML
+        // Insertar la firma y guardar
         const extensionContentNode = doc.getElementsByTagName('ext:ExtensionContent')[0];
-        if (!extensionContentNode) {
-            return res.status(400).json({ error: 'No se encontró la etiqueta <ext:ExtensionContent> en el XML' });
-        }
         extensionContentNode.appendChild(signatureNode);
 
-        // Serializar y formatear el XML
+        // Serializar y guardar el XML
         const signedXML = new XMLSerializer().serializeToString(doc);
-        const formattedXML = xmlFormatter(signedXML, { collapseContent: true }); // formatea el XML
+        const formattedXML = xmlFormatter(signedXML, { collapseContent: true });
+        fs.writeFileSync(path.resolve(rutaXML), formattedXML);
 
-        fs.writeFileSync(path.resolve(rutaXML), formattedXML); // guarda el XML formateado
-
-        res.json({ message: 'XML firmado correctamente', ruta: rutaXML });
+        res.json({ message: 'XML firmado correctamente', ruta: rutaXML });   
     } catch (error) {
         console.error('Error al firmar el XML:', error);
         res.status(500).json({ error: 'Error al firmar el XML' });

@@ -241,6 +241,8 @@ exports.generarFacturaXML = async (req, res) => {
                         '#text': venta.total
                     }
                 },
+
+                
                 'cac:InvoiceLine': (venta.DetalleVentas || []).map(item => ({
                     'cbc:ID': item.id,
                     'cbc:InvoicedQuantity': {
