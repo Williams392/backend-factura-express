@@ -128,16 +128,25 @@ exports.comprimirXML = async (req, res) => {
         const { rutaXML } = req.body;
         const nombreZIP = path.basename(rutaXML).replace('.xml', '.zip');
         const zipFile = new zip();
+        
+        // Comprimir el XML
         zipFile.addLocalFile(path.resolve(rutaXML));
         const zipPath = path.join(__dirname, '../../documents/zip/', nombreZIP);
         zipFile.writeZip(zipPath);
-        res.json({ message: 'Archivo comprimido correctamente', zip: zipPath });
+
+        // Leer el archivo ZIP y convertirlo a base64
+        const zipData = fs.readFileSync(zipPath);
+        const zipBase64 = zipData.toString('base64');
+
+        res.json({
+            message: 'Archivo comprimido y convertido a base64 correctamente',
+            zipBase64: zipBase64
+        });
     } catch (error) {
         console.error('Error al comprimir el XML:', error);
         res.status(500).json({ error: 'Error al comprimir el XML' });
     }
 };
-
 
 // PASO 04 con 05: PREPARAMOS LA CARTA DE ENVIO para SUNAT:
 // Usa axios para enviar el comprobante a la API de SUNAT:

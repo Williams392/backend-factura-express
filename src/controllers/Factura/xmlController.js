@@ -47,6 +47,12 @@ exports.generarFacturaXML = async (req, res) => {
 
         // Crear el objeto XML con los datos del comprobante
         const xmlData = {
+
+            '?xml': {
+                '@_version': '1.0',
+                '@_encoding': 'utf-8'
+            },
+
             'Invoice': {
                 '@_xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
                 '@_xmlns:xsd': 'http://www.w3.org/2001/XMLSchema',
@@ -74,7 +80,7 @@ exports.generarFacturaXML = async (req, res) => {
                     '@_schemeName': 'Tipo de Operacion',
                     '@_schemeAgencyName': 'PE:SUNAT',
                     '@_schemeURI': 'urn:pe:gob:sunat:cpe:see:gem:catalogos:catalogo51',
-                    '#text': '0101' // Código de tipo de Operación | catálogo 51 es venta interna
+                    '#text': '01' // Código de tipo de Operación | catálogo 51 es venta interna
                 },
                 'cbc:ID': `${venta.serie}-${venta.correlativo}`,
                 'cbc:IssueDate': issueDate,
@@ -202,13 +208,27 @@ exports.generarFacturaXML = async (req, res) => {
                         '#text': venta.total_impuestos
                     },
                     'cac:TaxSubtotal': {
+                        'cbc:TaxableAmount': {
+                            '@_currencyID': 'PEN',
+                            '#text': venta.total_venta
+                        },
                         'cbc:TaxAmount': {
                             '@_currencyID': 'PEN',
                             '#text': venta.total_impuestos
                         },
                         'cac:TaxCategory': {
+                            'cbc:ID': {
+                                '@_schemeID': 'UN/ECE 5305',
+                                '@_schemeName': 'Tax Category Identifier',
+                                '@_schemeAgencyName': 'United Nations Economic Commission for Europe',
+                                '#text': 'S'
+                            },
                             'cac:TaxScheme': {
-                                'cbc:ID': '1000',
+                                'cbc:ID': {
+                                    '@_schemeID': 'UN/ECE 5153',
+                                    '@_schemeAgencyID': '6',
+                                    '#text': '1000'
+                                },
                                 'cbc:Name': 'IGV',
                                 'cbc:TaxTypeCode': 'VAT'
                             }
